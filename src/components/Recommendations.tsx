@@ -25,39 +25,42 @@ export function Recommendations() {
       setLoading(true);
       const recs = await recommendationsService.getUserRecommendations(userId);
       
-      // Filtrar solo recomendaciones sugeridas
-      const filteredRecs = recs.filter(r => 
-        (r.estado === 'SUGERIDA' || r.status === 'SUGERIDA')
+      // Mostrar sugeridas + aceptadas
+      const filteredRecs = recs.filter(r =>
+        r.status === "SUGERIDA" ||
+        r.estado === "SUGERIDA" ||
+        r.status === "ACEPTADA" ||
+        r.estado === "ACEPTADA"
       );
-      
+
       setRecommendations(filteredRecs);
     } catch (error) {
-      console.error('Error cargando recomendaciones:', error);
-      toast.error('Error al cargar recomendaciones');
+      console.error("Error cargando recomendaciones:", error);
+      toast.error("Error al cargar recomendaciones");
     } finally {
       setLoading(false);
     }
   };
 
-  const parseRecommendationMessage = (message: string | undefined): Array<{ id: number; text: string }> => {
+  const parseRecommendationMessage = (message: string | undefined) => {
     if (!message) return [];
-    
-    const lines = message.split('\n').filter(line => line.trim());
+    const lines = message.split("\n").filter(line => line.trim());
     return lines.map((line, index) => ({
       id: index,
-      text: line.replace(/^\d+\.\s*/, ''), // Remover "1. ", "2. ", etc.
+      text: line.replace(/^\d+\.\s*/, "")
     }));
   };
 
   const getTypeFromMessage = (message: string | undefined): string => {
-    if (!message) return 'tip';
-    
+    if (!message) return "tip";
     const lowerMessage = message.toLowerCase();
-    if (lowerMessage.includes('ahorro') || lowerMessage.includes('ahorrar')) return 'tip';
-    if (lowerMessage.includes('gasto') || lowerMessage.includes('reducir')) return 'warning';
-    if (lowerMessage.includes('peligro') || lowerMessage.includes('alerta')) return 'alert';
-    if (lowerMessage.includes('excelente') || lowerMessage.includes('bien')) return 'success';
-    return 'tip';
+
+    if (lowerMessage.includes("ahorro") || lowerMessage.includes("ahorrar")) return "tip";
+    if (lowerMessage.includes("gasto") || lowerMessage.includes("reducir")) return "warning";
+    if (lowerMessage.includes("peligro") || lowerMessage.includes("alerta")) return "alert";
+    if (lowerMessage.includes("excelente") || lowerMessage.includes("bien")) return "success";
+
+    return "tip";
   };
 
   const getIcon = (type: string) => {
@@ -68,6 +71,18 @@ export function Recommendations() {
       case "success": return <CheckCircle className="text-green-600" size={24} />;
       default: return <Lightbulb className="text-indigo-600" size={24} />;
     }
+  };
+
+  // Estilos: aceptadas verde suave, sugeridas como antes
+  const getCardStyle = (rec: RecommendationDTO) => {
+    const isAccepted = rec.status === "ACEPTADA" || rec.estado === "ACEPTADA";
+    
+    if (isAccepted) {
+      return "border-l-4 border-green-500 bg-green-50"; // Color diferente
+    }
+
+    const type = getTypeFromMessage(rec.message || rec.content);
+    return getColor(type);
   };
 
   const getColor = (type: string) => {
@@ -82,15 +97,27 @@ export function Recommendations() {
 
   const handleAccept = async (id: number) => {
     try {
-      await recommendationsService.updateRecommendationStatus(id, 'ACEPTADA');
+      await recommendationsService.updateRecommendationStatus(id, "ACEPTADA");
       toast.success("Recomendación aceptada");
-      setRecommendations(recommendations.filter(rec => rec.id !== id));
+
+      setRecommendations(prev =>
+        prev.map(rec =>
+          rec.id === id
+            ? {
+                ...rec,
+                status: "ACEPTADA",
+                estado: "ACEPTADA",
+              } as RecommendationDTO
+            : rec
+        )
+      );
     } catch (error) {
-      console.error('Error al aceptar recomendación:', error);
+      console.error("Error al aceptar recomendación:", error);
       toast.error("Error al aceptar recomendación");
     }
   };
 
+  // borrar recomendacion
   const handleIgnore = async (id: number) => {
     try {
       await recommendationsService.updateRecommendationStatus(id, 'RECHAZADA');
@@ -102,19 +129,21 @@ export function Recommendations() {
     }
   };
 
+
+
   const formatDate = (dateString: string | undefined): string => {
-    if (!dateString) return 'Fecha desconocida';
-    
+    if (!dateString) return "Fecha desconocida";
+
     try {
       const date = new Date(dateString);
-      return date.toLocaleDateString('es-ES', {
-        day: 'numeric',
-        month: 'long',
-        hour: '2-digit',
-        minute: '2-digit'
+      return date.toLocaleDateString("es-ES", {
+        day: "numeric",
+        month: "long",
+        hour: "2-digit",
+        minute: "2-digit"
       });
     } catch (error) {
-      return 'Fecha inválida';
+      return "Fecha inválida";
     }
   };
 
@@ -135,25 +164,24 @@ export function Recommendations() {
 
       <div className="grid grid-cols-1 gap-4">
         {recommendations.map((rec) => {
-          // Usar message o content dependiendo de cuál esté disponible
-          const messageContent = rec.message || rec.content || '';
+          const messageContent = rec.message || rec.content || "";
           const parsedItems = parseRecommendationMessage(messageContent);
           const type = getTypeFromMessage(messageContent);
           const creationDate = rec.fechaCreacion || rec.creationDate;
-          
+
           return (
-            <Card key={rec.id} className={getColor(type)}>
+            <Card key={rec.id} className={getCardStyle(rec)}>
               <CardContent className="p-6">
                 <div className="flex gap-4">
                   <div className="flex-shrink-0 mt-1">
                     {getIcon(type)}
                   </div>
-                  
+
                   <div className="flex-1">
                     <h3 className="text-lg font-semibold text-gray-900 mb-3">
                       Análisis Financiero IA
                     </h3>
-                    
+
                     {parsedItems.length > 0 ? (
                       <div className="space-y-2 mb-4">
                         {parsedItems.map((item) => (
@@ -168,20 +196,23 @@ export function Recommendations() {
                         No hay contenido disponible para esta recomendación.
                       </p>
                     )}
-                    
+
                     <div className="flex items-center gap-2 mb-4 text-sm text-gray-500">
                       <span>{formatDate(creationDate)}</span>
                     </div>
 
-                    <div className="flex gap-2">
-                      <Button
-                        size="sm"
-                        onClick={() => handleAccept(rec.id)}
-                        className="bg-indigo-600 hover:bg-indigo-700"
-                      >
-                        <CheckCircle size={16} className="mr-1" />
-                        Aceptar
-                      </Button>
+                                        <div className="flex gap-2">
+                      {!(rec.status === "ACEPTADA" || rec.estado === "ACEPTADA") && (
+                        <Button
+                          size="sm"
+                          onClick={() => handleAccept(rec.id)}
+                          className="bg-indigo-600 hover:bg-indigo-700"
+                        >
+                          <CheckCircle size={16} className="mr-1" />
+                          Aceptar
+                        </Button>
+                      )}
+
                       <Button
                         size="sm"
                         variant="outline"
@@ -204,7 +235,7 @@ export function Recommendations() {
               <Lightbulb className="mx-auto mb-4 text-gray-400" size={48} />
               <h3 className="text-xl font-semibold text-gray-900 mb-2">No hay recomendaciones nuevas</h3>
               <p className="text-gray-600">
-                ¡Excelente! Estás al día con todas las sugerencias. Registra nuevos ingresos o gastos para recibir análisis actualizados.
+                ¡Excelente! Estás al día con todas las sugerencias.
               </p>
             </CardContent>
           </Card>
