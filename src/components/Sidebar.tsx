@@ -25,7 +25,6 @@ export function Sidebar({ onLogout }: { onLogout: () => void }) {
     { id: "income", label: "Ingresos", icon: TrendingUp, path: "/income" },
     { id: "expenses", label: "Gastos", icon: TrendingDown, path: "/expenses" },
     { id: "goals", label: "Metas", icon: Target, path: "/goals" },
-    { id: "reports", label: "Reportes", icon: BarChart3, path: "/reports" },
     { id: "recommendations", label: "Recomendaciones", icon: Lightbulb, path: "/recommendations" },
     { id: "support", label: "Soporte", icon: HelpCircle, path: "/support" },
     { id: "settings", label: "Configuración", icon: Settings, path: "/settings" },

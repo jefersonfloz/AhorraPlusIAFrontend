@@ -8,7 +8,6 @@ import { Dashboard } from "./components/Dashboard";
 import { IncomeManagement } from "./components/IncomeManagement";
 import { ExpenseManagement } from "./components/ExpenseManagement";
 import { SavingsGoals } from "./components/SavingsGoals";
-import { Reports } from "./components/Reports";
 import { Recommendations } from "./components/Recommendations";
 import { Support } from "./components/Support";
 import { Settings } from "./components/Settings";
@@ -167,16 +166,6 @@ function AppRoutes() {
           <ProtectedRoute>
             <UserLayout>
               <SavingsGoals />
-            </UserLayout>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/reports"
-        element={
-          <ProtectedRoute>
-            <UserLayout>
-              <Reports />
             </UserLayout>
           </ProtectedRoute>
         }
