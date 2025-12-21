@@ -256,3 +256,17 @@ export interface ApiResponse<T> {
   data: T;
   message?: string;
 }
+// --- REPORT TYPES ---
+export interface MonthlyStat {
+  month: string;
+  income: number;
+  expense: number;
+}
+
+export interface ReportData {
+  monthlyStats: MonthlyStat[];
+  totalIncome: number;
+  totalExpense: number;
+  netSavings: number;
+}
+
