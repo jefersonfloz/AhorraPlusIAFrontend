@@ -133,4 +133,4 @@ VITE_API_URL=http://localhost:8080/api
 
 El backend del proyecto se encuentra en:
 
-[Enlace al repositorio Backend]
+https://github.com/jefersonfloz/AhorraPlusIA
